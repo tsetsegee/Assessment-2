@@ -1,30 +1,175 @@
----
-title: "Assessment 2"
-author: "Tsetsegee S4661830"
-date: '2022-03-26'
-output: html_document
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Assessment 2
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## *Tsetsegee Amarbayasgalan* **S4661830**
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+**load the dataset**
+```{r}
+thanksgiving_meal <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv")
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+### 1. Display the first 10 rows of the dataset using `kable()` function (1 marks)
+```{r}
+kable(thanksgiving_meal[1:10])
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+### 2. Using `skim()` display the summary of variables.
+```{r}
+skim(thanksgiving_meal)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### 2.1 Think about the task to predict a family income based on their menu: what variables may be useful? Are all of them correct type? Write 2-3 sentences with your explanation. (2 marks)
+Based on the menu in the dataset, There are 5 kinds of variables that are useful for predicting a family income. The main dish, main preparation, the type of stuffing, the type of cranberry and having gravy. 
+### 2.2 Think about the task to predict a community type or US_region based on their menu: what variables may be useful? Are all of them correct type? (2 marks)
+
+The community type, prayer, watch program are may be effective for predicting  US_region based on the menu in the dataset.
+
+###3 Use `fct_reorder` and `parse_number` functions to create a factor variable `family_income`(2 mark).
+```{r}
+factorvariable <- thanksgiving_meal %>%
+  mutate(family_income=fct_reorder(family_income, parse_number (family_income)))
+  
+skim(factorvariable)
+```
+### 4 What is the number of people who celebrate? (1 mark)
+ 
+```{r}
+thanksgiving_meal %>%
+  filter(celebrate=="Yes") %>%
+  count(celebrate)
+```
+
+### 5. What are categories and insights for each main dish served and the method it is prepared? (2 marks)
+```{r}
+ thanksgiving_meal %>%
+  count(main_dish, main_prep, sort= TRUE)
+```
+
+### 6. Create 3 different data viz showing insights for main dish served and the method. Provide your own legend and use themes. Write 2-3 sentences with your explanation of each insight. (4 marks)
+
+####6.1 According to ggplot2, the geompoint is used to create scatterplots. The scatterplot is the most effective way to show the connection between two continuous variables.
+```{r}
+thanksgiving_meal %>%
+    select(main_dish,main_prep) %>%
+    ggplot(aes(main_dish, main_prep)) +
+    geom_point(colour= "blue") +
+    labs(title = "First Visualisation", caption = "Figure 1")
+```
+  
+###6.2 According to the ggplot2, the geom count is used to count the number of observations at each location before mapping the count to a point area.
+  
+```{r}
+thanksgiving_meal %>%
+    ggplot(aes(  main_dish, main_prep))+
+    geom_count(color="red")+
+    labs(title="Second Visualization", caption="Figure 2")+
+    coord_flip()
+```
+
+### 6.3 According to ggplot2, the box plot is used to display the data in this section. The box plot is a standardized  method of displaying the distribution of data based on the five number summary: minimum, first quartile, median, third quartile, and maximum. The reason for using box plot to data visualization is a box plots are useful for detecting outliers  and compare distributions.
+ 
+```{r}
+ ggplot(thanksgiving_meal, aes(main_dish, main_prep)) +
+     geom_boxplot() +
+     labs(title="Third Visualization", caption="Figure 3")+
+     coord_flip()
+```
+  
+According to the above visualisations, it is illustrating the turkey is the most popular main dish. In the contrast, fried food is the least popular. Also, there are three types of preparation methods which are fried, baked, and roasted. 
+  
+###7. How many use cranberry sauce? How many use gravy? 2marks
+  
+```{r}
+thanksgiving_meal %>%
+    filter(!is.na(cranberry) & cranberry!="None" ) %>%
+    count()
+  
+  thanksgiving_meal %>%
+    filter (gravy=="Yes") %>%
+     count (gravy)
+```
+  
+  
+###8-9. What is the distribution of those who celebrate across income ranges. Create a data viz. Write 2-3 sentences with your explanation of each insight. (4 marks)
+  
+```{r}
+table(thanksgiving_meal$family_income)
+  thanksgiving_meal %>%
+    filter(celebrate=="Yes") %>%
+    ggplot(aes(family_income)) + geom_bar(aes(family_income))
+```
+  
+The Histogram shows the normal distribution of family income. However there are significant number of people preferred not to respond.
+  
+###10. Use the following code to create a new data set 2 mark
+  
+```{r}
+thanksgiving_meal.new <- thanksgiving_meal %>%
+    select(id, starts_with("side"),
+    starts_with("pie"),
+    starts_with("dessert")) %>%
+  select(-side15, -pie13, -dessert12) %>%
+  gather(type, value, -id) %>%
+  filter(!is.na(value),
+         !value %in% c("None", "Other (please specify)")) %>%
+  mutate(type = str_remove(type, "\\d+"))
+```
+  
+ The code exhibits there are 3 types of variables selected to form the dataset(thanksgiving_meal.new).The variables include ID, type and value. As a result, the Value variable's missing values were omitted. 
+   
+###11-12. Intall package `widyr` and use `pairwise_cor()` function https://www.rdocumentation.org/packages/widyr/versions/0.1.3/topics/pairwise_cor Write 2-3 sentences with your explanation of what it does. (2 marks)
+#Use this code for the new dataset
+
+```{r}
+install.packages("widyr")
+library(widyr)
+thanksgiving_meal.new %>%
+pairwise_cor(value, id, sort = TRUE)
+```
+The relation between items within the same column has shown in the result. That is the relationship between the items in the Value variable. 
+
+###13. Use `lm()` or randomForest() function to build a model that predict a family income based on data in the dataset. 8 marksCompare 3 models using different set of input variables. Use different number of variables.Explain your choice of variables (3 sentences) Write 2 sentences explaining which model os best.
+
+```{r}
+install.packages("randomForest")
+library (randomForest)
+
+```
+
+###classification model 1
+
+```{r}
+rf1 <- randomForest(family_income ~ celebrate + main_dish, data= factorvariable, na.action=na.omit)
+
+print (rf1)
+```
+
+According to classification model 1, the number of families who celebrate Thanksgiving is higher, and the majority of these households eat turkey as their main dish. 
+
+###classification model 2
+
+```{r}
+rf2 <- randomForest(family_income ~ celebrate + main_prep, data = factorvariable, na.action = na.omit)
+
+print (rf2)
+```
+
+Classification model 2 indicates that the family has a greater income than the average. The main dish is prepared by baking or roasting, and both methods take about the same amount of time.
+
+###classification model 3
+
+```{r}
+rf3 <- randomForest(family_income ~ celebrate + stuffing , data = factorvariable, na.action = na.omit)
+
+print (rf3)
+```
+
+The classification model 3 shows that there are a higher number of households eating bread-based staffing as their main dish and only a small amount of people eats rise-based food.
+
+The reason for choosing the Random forest function is that according to the CFI, the random forest provide the highest accuracy among all the available classification methods. Also, it can handle big data with numerous variables running into thousands.
+
+
