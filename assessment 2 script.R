@@ -1,13 +1,14 @@
-
 #Install packages
 install.packages("tidyverse")
 install.packages("knitr")
 install.packages("skimr")
+install.packages("readr")
 
 #Load the package
 library (tidyverse)
 library (knitr)
 library(skimr)
+library(readr)
 
 #load the dataset
 
